@@ -26,18 +26,18 @@ interface ThreeRefs {
 const SECTIONS = [
   {
     title: 'BREATHE',
-    line1: 'Real-time air quality sensing',
-    line2: 'from Pimpri, Pune, India',
+    line1: 'Clean air intelligence',
+    line2: 'Monitoring Pimpri · Pune · Maharashtra',
   },
   {
     title: 'MONITOR',
-    line1: 'IoT pipeline — STM32 → ESP32',
-    line2: '→ Cloud → Your browser, live',
+    line1: 'Sensors never sleep',
+    line2: 'Live readings pushed every 30 seconds',
   },
   {
     title: 'PREDICT',
-    line1: 'XGBoost on bare-metal STM32',
-    line2: 'No cloud needed for inference',
+    line1: 'AI on the edge',
+    line2: 'XGBoost inference · No cloud required',
   },
 ];
 
@@ -295,9 +295,9 @@ function createStarField(refs: ThreeRefs) {
 
       const c = new THREE.Color();
       const rnd = Math.random();
-      if (rnd < 0.7) c.setHSL(0, 0, 0.8 + Math.random() * 0.2);
-      else if (rnd < 0.9) c.setHSL(0.38, 0.5, 0.75); // slight green tint
-      else c.setHSL(0.5, 0.4, 0.8);
+      if (rnd < 0.75) c.setHSL(0.58, 0.15, 0.80 + Math.random() * 0.18); // soft blue-white
+      else if (rnd < 0.92) c.setHSL(0.55, 0.35, 0.72); // steel blue
+      else c.setHSL(0.60, 0.25, 0.85); // pale sky blue
       col[j * 3] = c.r; col[j * 3 + 1] = c.g; col[j * 3 + 2] = c.b;
       sz[j] = Math.random() * 2 + 0.5;
     }
@@ -344,9 +344,9 @@ function createNebula(refs: ThreeRefs) {
   const mat = new THREE.ShaderMaterial({
     uniforms: {
       time: { value: 0 },
-      color1: { value: new THREE.Color(0x001a33) }, // deep teal
-      color2: { value: new THREE.Color(0x00aa44) }, // green
-      opacity: { value: 0.3 },
+      color1: { value: new THREE.Color(0x020a28) }, // deep midnight blue
+      color2: { value: new THREE.Color(0x082840) }, // dark ocean
+      opacity: { value: 0.22 },
     },
     vertexShader: `
       varying vec2 vUv; varying float vElev; uniform float time;
@@ -381,10 +381,10 @@ function createNebula(refs: ThreeRefs) {
 
 function createMountains(refs: ThreeRefs) {
   const layers = [
-    { distance: -50, height: 60, color: 0x0a0f1a, opacity: 1 },
-    { distance: -100, height: 80, color: 0x0d1a2e, opacity: 0.8 },
-    { distance: -150, height: 100, color: 0x0a2a1a, opacity: 0.6 },
-    { distance: -200, height: 120, color: 0x053d26, opacity: 0.4 },
+    { distance: -50,  height: 60,  color: 0x060d1e, opacity: 1   },
+    { distance: -100, height: 80,  color: 0x071428, opacity: 0.85 },
+    { distance: -150, height: 100, color: 0x091b35, opacity: 0.65 },
+    { distance: -200, height: 120, color: 0x0b2240, opacity: 0.45 },
   ];
 
   layers.forEach((layer, index) => {
@@ -426,8 +426,8 @@ function createAtmosphere(refs: ThreeRefs) {
       varying vec3 vNormal; uniform float time;
       void main() {
         float i = pow(0.7 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.0);
-        vec3 atm = vec3(0.0, 0.8, 0.5) * i;
-        gl_FragColor = vec4(atm, i * 0.22);
+        vec3 atm = vec3(0.15, 0.45, 0.80) * i;
+        gl_FragColor = vec4(atm, i * 0.14);
       }`,
     side: THREE.BackSide,
     blending: THREE.AdditiveBlending,
