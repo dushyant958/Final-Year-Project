@@ -1,66 +1,116 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
+import { motion } from 'motion/react';
+import {
+  SquaresFour,
+  Pulse,
+  ChartBar,
+  TrendUp,
+  Bell,
+  GearSix,
+  Wrench,
+} from '@phosphor-icons/react';
+import { cn } from '@/lib/utils';
 
 const NAV = [
-  { to: '/dashboard',          icon: '⊞', label: 'Dashboard' },
-  { to: '/dashboard/live',     icon: '◉', label: 'Live Data' },
-  { to: '/dashboard/history',  icon: '▤', label: 'Historical' },
-  { to: '/dashboard/trends',   icon: '⌇', label: 'Trends' },
-  { to: '/dashboard/alerts',   icon: '⚑', label: 'Alerts' },
-  { to: '/dashboard/system',   icon: '⊙', label: 'System Info' },
-  { to: '/dashboard/settings', icon: '⚙', label: 'Settings' },
+  { to: '/dashboard', icon: SquaresFour, label: 'Dashboard' },
+  { to: '/dashboard/live', icon: Pulse, label: 'Live Data' },
+  { to: '/dashboard/history', icon: ChartBar, label: 'Historical' },
+  { to: '/dashboard/trends', icon: TrendUp, label: 'Trends' },
+  { to: '/dashboard/alerts', icon: Bell, label: 'Alerts' },
+  { to: '/dashboard/system', icon: GearSix, label: 'System Info' },
+  { to: '/dashboard/settings', icon: Wrench, label: 'Settings' },
 ];
 
-interface Props { online: boolean; }
+interface Props {
+  online: boolean;
+}
 
 export function Sidebar({ online }: Props) {
+  const location = useLocation();
+
   return (
-    <aside className="fixed left-0 top-0 h-screen w-[215px] bg-[#0d1117] flex flex-col z-40 border-r border-[rgba(255,255,255,0.05)]">
-      {/* Logo */}
-      <div className="px-5 py-5 border-b border-[rgba(255,255,255,0.05)]">
+    <aside className="fixed left-0 top-0 h-screen w-64 bg-dbg hidden lg:flex flex-col z-40 border-r border-dotted border-db">
+      {/* Brand */}
+      <div className="px-5 py-5 border-b border-dotted border-db">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-black text-sm">A</div>
+          <div className="w-8 h-8 rounded-none bg-primary flex items-center justify-center text-white font-black text-sm">
+            AQI
+          </div>
           <div>
-            <p className="text-white font-bold text-sm leading-none">AQI Monitor</p>
-            <p className="text-[10px] text-gray-500 mt-0.5">IoT Air Quality System</p>
+            <p className="font-mono tracking-[0.28em] text-[10px] uppercase text-dm">
+              MONITOR
+            </p>
           </div>
         </div>
       </div>
 
+      {/* Diamond divider */}
+      <div className="flex items-center justify-center gap-2 py-3 px-5">
+        <div className="flex-1 h-px border-b border-dotted border-db" />
+        <span className="text-dm text-[8px] rotate-45">&#9670;</span>
+        <div className="flex-1 h-px border-b border-dotted border-db" />
+      </div>
+
       {/* Nav */}
-      <nav className="flex-1 px-3 py-4 flex flex-col gap-0.5">
-        {NAV.map(item => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            end={item.to === '/dashboard'}
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-150 ${
+      <nav className="flex-1 px-3 py-2 flex flex-col gap-0.5 overflow-y-auto">
+        {NAV.map((item) => {
+          const isActive =
+            item.to === '/dashboard'
+              ? location.pathname === '/dashboard'
+              : location.pathname.startsWith(item.to);
+          const Icon = item.icon;
+
+          return (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.to === '/dashboard'}
+              className={cn(
+                'relative flex items-center gap-3 px-4 py-3 text-sm transition-all duration-150 cursor-pointer rounded-none',
                 isActive
-                  ? 'bg-blue-600 text-white font-semibold'
-                  : 'text-gray-400 hover:text-gray-200 hover:bg-[rgba(255,255,255,0.05)]'
-              }`
-            }
-          >
-            <span className="text-base w-5 text-center">{item.icon}</span>
-            {item.label}
-          </NavLink>
-        ))}
+                  ? 'text-dh font-semibold bg-de'
+                  : 'text-dsc hover:text-dh hover:bg-de'
+              )}
+            >
+              {isActive && (
+                <motion.div
+                  layoutId="sidebar-active"
+                  className="absolute left-0 top-0 bottom-0 w-[3px] bg-primary"
+                  transition={{ type: 'spring', stiffness: 350, damping: 30 }}
+                />
+              )}
+              <Icon weight="thin" className="h-4 w-4 shrink-0" />
+              <span className="font-mono text-[12px] tracking-wide">
+                {item.label}
+              </span>
+            </NavLink>
+          );
+        })}
       </nav>
 
-      {/* Status */}
-      <div className="px-4 py-4 border-t border-[rgba(255,255,255,0.05)]">
+      {/* Status section */}
+      <div className="px-4 py-4 border-t border-dotted border-db">
         {[
-          { label: 'STM32 Node',    ok: online },
-          { label: 'ESP32 Gateway', ok: online },
-          { label: 'Sensors',       ok: online },
-          { label: 'Cloud Upload',  ok: online },
-        ].map(s => (
-          <div key={s.label} className="flex items-center justify-between py-1">
-            <span className="text-[11px] text-gray-500">{s.label}</span>
-            <span className={`w-2 h-2 rounded-full ${s.ok ? 'bg-green-500' : 'bg-red-500'}`} />
+          { label: 'STM32', ok: online },
+          { label: 'ESP32', ok: online },
+          { label: 'Sensors', ok: online },
+          { label: 'Cloud', ok: online },
+        ].map((s) => (
+          <div key={s.label} className="flex items-center justify-between py-1.5">
+            <span className="text-[11px] font-mono text-dm">{s.label}</span>
+            <span
+              className={cn(
+                'w-2 h-2 rounded-full',
+                s.ok ? 'bg-green-500' : 'bg-red-500'
+              )}
+            />
           </div>
         ))}
-        <div className="mt-3 text-[10px] text-gray-600">v1.0.3 · m2cgen XGBoost</div>
+
+        {/* Version */}
+        <div className="mt-3 text-[9px] font-mono text-dm">
+          v1.0.3 &middot; m2cgen XGBoost
+        </div>
       </div>
     </aside>
   );

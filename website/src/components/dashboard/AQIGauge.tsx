@@ -1,3 +1,4 @@
+import { cn } from '@/lib/utils';
 import { getAQICategory } from '../../lib/aqi';
 
 interface Props { aqi: number; }
@@ -45,7 +46,7 @@ export function AQIGauge({ aqi }: Props) {
   const ny = CY - nLen * Math.sin(needleAngle);
 
   return (
-    <div className="flex flex-col items-center">
+    <div className={cn('flex flex-col items-center rounded-none')}>
       <svg viewBox="0 0 400 215" className="w-full max-w-md select-none">
         {/* Segments */}
         {SEGMENTS.map(s => (
@@ -63,7 +64,7 @@ export function AQIGauge({ aqi }: Props) {
           const pt = toPoint(l.aqi, R_OUT + 18);
           return (
             <text key={l.aqi} x={pt.x} y={pt.y} textAnchor="middle" dominantBaseline="middle"
-              fontSize="9" fill="rgba(150,170,200,0.6)" fontFamily="system-ui">
+              fontSize="9" fill="#666666" fontFamily='"Geist Mono", monospace'>
               {l.sub}
             </text>
           );
@@ -71,18 +72,24 @@ export function AQIGauge({ aqi }: Props) {
 
         {/* Needle */}
         <line x1={CX} y1={CY} x2={nx} y2={ny}
-          stroke="#e2e8f0" strokeWidth="2.5" strokeLinecap="round"
-          style={{ filter: 'drop-shadow(0 0 4px rgba(200,220,255,0.4))' }} />
-        <circle cx={CX} cy={CY} r={10} fill="#1e293b" stroke="rgba(255,255,255,0.15)" strokeWidth="1.5" />
+          stroke="#f5f5f5" strokeWidth="2.5" strokeLinecap="round"
+          style={{ filter: 'drop-shadow(0 0 4px rgba(255,64,64,0.3))' }} />
+        <circle cx={CX} cy={CY} r={10} fill="#111114" stroke="rgba(255,255,255,0.15)" strokeWidth="1.5" />
         <circle cx={CX} cy={CY} r={4} fill={cat.color} />
       </svg>
 
       {/* AQI number */}
       <div className="text-center -mt-2">
-        <div className="text-6xl font-black tracking-tight" style={{ color: cat.color }}>
+        <div
+          className={cn('font-display font-bold text-5xl tracking-tight text-dh')}
+          style={{ color: cat.color }}
+        >
           {Math.round(aqi)}
         </div>
-        <div className="text-sm font-bold mt-1 tracking-widest uppercase" style={{ color: cat.color }}>
+        <div
+          className={cn('text-[10px] font-mono font-bold uppercase tracking-widest mt-1')}
+          style={{ color: cat.color }}
+        >
           {cat.label}
         </div>
       </div>

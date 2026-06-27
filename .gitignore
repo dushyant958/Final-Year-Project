@@ -27,6 +27,10 @@ website/dist/
 website/.env
 website/.env.*
 
+# Server
+server/node_modules/
+server/.env
+
 # OS
 .DS_Store
 Thumbs.db

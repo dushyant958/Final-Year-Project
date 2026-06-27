@@ -1,3 +1,17 @@
+import { cn } from '@/lib/utils';
+import { motion } from 'motion/react';
+import {
+  Thermometer,
+  Drop,
+  Gauge,
+  Fire,
+  Flask,
+  CloudFog,
+  Atom,
+  Cube,
+} from '@phosphor-icons/react';
+import type { ComponentType } from 'react';
+
 interface Props {
   label: string;
   unit: string;
@@ -5,23 +19,62 @@ interface Props {
   color?: string;
   icon: string;
   decimals?: number;
+  index?: number;
 }
 
-export function SensorCard({ label, unit, value, color = '#60a5fa', icon, decimals = 1 }: Props) {
+const ICON_MAP: Record<string, ComponentType<{ size?: number; weight?: 'thin'; className?: string }>> = {
+  '🌡': Thermometer,
+  '💧': Drop,
+  '🔵': Gauge,
+  '🟤': CloudFog,
+  '🟡': Flask,
+  '🔴': Fire,
+  '🧪': Atom,
+};
+
+export function SensorCard({ label, unit, value, icon, decimals = 1, index = 0 }: Props) {
+  const IconComp = ICON_MAP[icon] ?? Cube;
+
   return (
-    <div className="bg-white rounded-2xl p-5 shadow-sm flex flex-col gap-3 border border-gray-100">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.1 + index * 0.08, duration: 0.4, ease: 'easeOut' }}
+      className={cn(
+        'relative bg-ds border border-dotted border-db p-5 group cursor-default',
+        'flex flex-col gap-3 rounded-none',
+        'transition-transform duration-200',
+        'hover:-translate-y-px'
+      )}
+      style={{
+        // hover glow handled via CSS below
+      }}
+    >
+      {/* Top accent bar */}
+      <div className="absolute top-0 left-0 right-0 h-[2px] bg-primary opacity-60" />
+
+      {/* Header: icon + label */}
       <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold tracking-widest uppercase" style={{ color }}>
+        <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-dm">
           {label}
         </span>
-        <span className="text-xl">{icon}</span>
+        <IconComp size={18} weight="thin" className="text-dsc" />
       </div>
+
+      {/* Value */}
       <div>
-        <div className="text-3xl font-black tracking-tight text-gray-900">
-          {value !== null ? value.toFixed(decimals) : '—'}
+        <div className="font-display text-3xl font-bold tracking-tight text-dh">
+          {value !== null ? value.toFixed(decimals) : '\u2014'}
         </div>
-        <div className="text-xs text-gray-400 mt-1 tracking-wide">{unit}</div>
+        <div className="text-[10px] font-mono text-dm mt-1">{unit}</div>
       </div>
-    </div>
+
+      {/* Hover glow style */}
+      <style>{`
+        .group:hover {
+          box-shadow: 0 0 0 1px rgba(255,64,64,0.2), 0 0 24px rgba(255,64,64,0.08);
+        }
+      `}</style>
+    </motion.div>
   );
 }

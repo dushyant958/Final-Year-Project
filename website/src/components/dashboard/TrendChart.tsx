@@ -1,3 +1,5 @@
+import { cn } from '@/lib/utils';
+import { motion } from 'motion/react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   ReferenceLine, ResponsiveContainer,
@@ -23,50 +25,115 @@ function aqiColor(aqi: number) {
   return '#7f1d1d';
 }
 
+const AXIS_TICK = {
+  fontSize: 10,
+  fill: '#999999',
+  fontWeight: 700,
+  fontFamily: '"Geist Mono", monospace',
+};
+
+const TOOLTIP_STYLE = {
+  background: '#242424',
+  border: '1px dotted #3D3D3D',
+  borderRadius: 0,
+  fontSize: 11,
+};
+
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
   const v = payload[0].value as number;
   return (
-    <div className="bg-white border border-gray-100 rounded-xl shadow-lg px-4 py-3 text-sm">
-      <p className="text-gray-400 text-xs mb-1">{label}</p>
-      <p className="font-black text-xl" style={{ color: aqiColor(v) }}>{v}</p>
-      <p className="text-xs text-gray-400">AQI</p>
+    <div className="px-4 py-3" style={TOOLTIP_STYLE}>
+      <p className="text-[10px] font-mono text-dm mb-1">{label}</p>
+      <p className="font-display font-bold text-xl" style={{ color: aqiColor(v) }}>{v}</p>
+      <p className="text-[10px] font-mono text-dsc">AQI</p>
     </div>
   );
 };
 
 export function TrendChart({ history }: Props) {
-  // Show last 48 points (24 min if 30s interval) — keeps chart readable
   const data = history.slice(-48);
 
   if (data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-48 text-gray-300 text-sm">
-        Collecting data… readings appear every 30 seconds.
+      <div className={cn(
+        'bg-ds border border-dotted border-db p-6 rounded-none',
+        'flex items-center justify-center h-48'
+      )}>
+        {/* Shimmer loading animation */}
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-48 h-2 bg-de rounded-none animate-pulse" />
+          <div className="w-32 h-2 bg-de rounded-none animate-pulse" />
+          <p className="text-[10px] font-mono text-dm uppercase tracking-widest mt-2">
+            Collecting data&hellip; readings appear every 30 seconds.
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
-    <ResponsiveContainer width="100%" height={220}>
-      <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-        <defs>
-          <linearGradient id="aqi-grad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%"  stopColor="#3b82f6" stopOpacity={0.25} />
-            <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.02} />
-          </linearGradient>
-        </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-        <XAxis dataKey="time" tick={{ fontSize: 10, fill: '#94a3b8' }} tickLine={false} axisLine={false} interval="preserveStartEnd" />
-        <YAxis domain={[0, 500]} tick={{ fontSize: 10, fill: '#94a3b8' }} tickLine={false} axisLine={false} />
-        {ZONES.map(z => (
-          <ReferenceLine key={z.y} y={z.y} stroke={z.color} strokeDasharray="4 4" strokeOpacity={0.4}
-            label={{ value: z.label, position: 'right', fontSize: 9, fill: z.color }} />
-        ))}
-        <Tooltip content={<CustomTooltip />} />
-        <Area type="monotone" dataKey="aqi" stroke="#3b82f6" strokeWidth={2}
-          fill="url(#aqi-grad)" dot={false} activeDot={{ r: 4, fill: '#3b82f6' }} />
-      </AreaChart>
-    </ResponsiveContainer>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.1, duration: 0.4, ease: 'easeOut' }}
+      className={cn('bg-ds border border-dotted border-db p-6 rounded-none')}
+    >
+      <h3 className="font-display font-bold text-lg tracking-tight text-dh mb-4">
+        AQI Trend
+      </h3>
+
+      <ResponsiveContainer width="100%" height={220}>
+        <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+          <defs>
+            <linearGradient id="aqi-grad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%"  stopColor="#ff4040" stopOpacity={0.25} />
+              <stop offset="95%" stopColor="#ff4040" stopOpacity={0.02} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(61,61,61,0.5)" vertical={false} />
+          <XAxis
+            dataKey="time"
+            tick={AXIS_TICK}
+            tickLine={false}
+            axisLine={false}
+            interval="preserveStartEnd"
+          />
+          <YAxis
+            domain={[0, 500]}
+            tick={AXIS_TICK}
+            tickLine={false}
+            axisLine={false}
+          />
+          {ZONES.map(z => (
+            <ReferenceLine
+              key={z.y}
+              y={z.y}
+              stroke={z.color}
+              strokeDasharray="4 4"
+              strokeOpacity={0.4}
+              label={{
+                value: z.label,
+                position: 'right',
+                fontSize: 9,
+                fill: z.color,
+                fontFamily: '"Geist Mono", monospace',
+              }}
+            />
+          ))}
+          <Tooltip content={<CustomTooltip />} />
+          <Area
+            type="monotone"
+            dataKey="aqi"
+            stroke="#ff4040"
+            strokeWidth={2}
+            fill="url(#aqi-grad)"
+            dot={false}
+            activeDot={{ r: 4, fill: '#ff4040' }}
+            radius={[0, 0, 0, 0] as any}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    </motion.div>
   );
 }

@@ -1,11 +1,12 @@
 import { Component as HorizonHero } from '../components/ui/horizon-hero-section';
-import { GlobeSection } from '../components/GlobeSection';
+import AuthSection from '../components/AuthSection';
 
 export default function Landing() {
   return (
     <main>
-      <HorizonHero />
-      <GlobeSection />
+      <HorizonHero>
+        <AuthSection />
+      </HorizonHero>
     </main>
   );
 }
