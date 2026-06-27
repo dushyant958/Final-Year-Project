@@ -1,7 +1,6 @@
 import { motion } from 'motion/react';
 import { useOutletContext } from 'react-router-dom';
-import { Cpu, WifiHigh, Thermometer, Brain, Cloud, Code } from '@phosphor-icons/react';
-import { cn } from '@/lib/utils';
+import { Cpu, ListBullets, Brain, ChartBar, CloudArrowUp } from '@phosphor-icons/react';
 
 type DashboardContext = {
   latest: any;
@@ -15,56 +14,50 @@ type DashboardContext = {
   online: boolean;
 };
 
-const SYSTEM_INFO = [
+const PIPELINE_STEPS = [
+  { icon: Cpu, label: 'Sensor Read' },
+  { icon: ListBullets, label: 'Feature Vector' },
+  { icon: Brain, label: 'XGBoost Inference' },
+  { icon: ChartBar, label: 'AQI Output' },
+  { icon: CloudArrowUp, label: 'ESP32 Upload' },
+];
+
+const HARDWARE_CARDS = [
   {
-    icon: Cpu,
-    title: 'MCU',
+    title: 'STM32F407VGT6',
     details: [
-      { label: 'Chip', value: 'STM32F407VG' },
       { label: 'Core', value: 'ARM Cortex-M4' },
-      { label: 'Clock', value: '168 MHz' },
+      { label: 'Clock Speed', value: '168 MHz' },
+      { label: 'Flash Memory', value: '1 MB' },
+      { label: 'SRAM', value: '192 KB' },
+      { label: 'ADC Resolution', value: '12-bit' },
     ],
   },
   {
-    icon: WifiHigh,
-    title: 'Gateway',
+    title: 'ESP32-WROOM-32',
     details: [
-      { label: 'Module', value: 'ESP32-WROOM-32' },
-      { label: 'Protocol', value: 'Wi-Fi 802.11 b/g/n' },
+      { label: 'Core', value: 'Xtensa LX6' },
+      { label: 'Clock Speed', value: '240 MHz' },
+      { label: 'Connectivity', value: 'Wi-Fi 802.11 b/g/n' },
+      { label: 'UART Baud', value: '115200' },
     ],
   },
   {
-    icon: Thermometer,
-    title: 'Sensors',
+    title: 'XGBoost Model',
+    details: [
+      { label: 'Features', value: '14 features' },
+      { label: 'Trees', value: '6000 trees' },
+      { label: 'R\u00b2 Score', value: '0.8606' },
+      { label: 'MAE', value: '25.67' },
+      { label: 'Inference', value: '<1 ms' },
+    ],
+  },
+  {
+    title: 'Sensor Suite',
     details: [
       { label: 'MQ-7', value: 'CO' },
       { label: 'MQ-135', value: 'NH\u2083 / Benzene / Smoke' },
       { label: 'BME680', value: 'T / H / P' },
-    ],
-  },
-  {
-    icon: Brain,
-    title: 'ML Model',
-    details: [
-      { label: 'Algorithm', value: 'XGBoost' },
-      { label: 'Features', value: '14 features' },
-      { label: 'Accuracy', value: 'R\u00b2 = 0.86' },
-    ],
-  },
-  {
-    icon: Cloud,
-    title: 'Cloud',
-    details: [
-      { label: 'Provider', value: 'CloudPe S3' },
-      { label: 'Region', value: 'in-west3' },
-    ],
-  },
-  {
-    icon: Code,
-    title: 'Firmware',
-    details: [
-      { label: 'Version', value: 'v1.0.3' },
-      { label: 'ML Runtime', value: 'm2cgen compiled' },
     ],
   },
 ];
@@ -86,48 +79,67 @@ export default function SystemPage() {
         </h2>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {SYSTEM_INFO.map((item, idx) => {
-          const Icon = item.icon;
-          return (
-            <motion.div
-              key={item.title}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 + idx * 0.08, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-              className={cn(
-                'bg-ds border border-dotted border-db p-6',
-                'hover:-translate-y-px transition-transform'
-              )}
-              style={{ borderRadius: 0 }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.boxShadow =
-                  '0 4px 20px rgba(255,64,64,0.15)';
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.boxShadow = 'none';
-              }}
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <Icon weight="thin" className="h-6 w-6 text-primary" />
-                <h3 className="font-display font-bold text-lg tracking-tight text-dh">
-                  {item.title}
-                </h3>
+      {/* Data Pipeline */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        className="bg-ds border border-dotted border-db p-6"
+      >
+        <p className="text-[11px] font-mono font-semibold uppercase tracking-widest text-primary mb-6">
+          Data Pipeline
+        </p>
+        <div className="flex items-center gap-0 overflow-x-auto">
+          {PIPELINE_STEPS.map((step, idx) => {
+            const Icon = step.icon;
+            return (
+              <div key={step.label} className="flex items-center">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.15 + idx * 0.1, duration: 0.3 }}
+                  className="bg-ds border border-dotted border-db p-4 flex flex-col items-center gap-2 min-w-[120px]"
+                >
+                  <Icon weight="thin" className="h-6 w-6 text-primary" />
+                  <span className="text-[10px] font-mono text-dbd text-center whitespace-nowrap">
+                    {step.label}
+                  </span>
+                </motion.div>
+                {idx < PIPELINE_STEPS.length - 1 && (
+                  <div className="flex-1 min-w-[24px] border-t border-dotted border-db self-center" />
+                )}
               </div>
-              <div className="space-y-2">
-                {item.details.map((detail) => (
-                  <div
-                    key={detail.label}
-                    className="flex justify-between items-center text-xs border-b border-dotted border-db pb-2 last:border-0 last:pb-0"
-                  >
-                    <span className="text-dm font-mono">{detail.label}</span>
-                    <span className="text-dbd font-medium">{detail.value}</span>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          );
-        })}
+            );
+          })}
+        </div>
+      </motion.div>
+
+      {/* Hardware Cards 2x2 */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        {HARDWARE_CARDS.map((card, idx) => (
+          <motion.div
+            key={card.title}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 + idx * 0.08, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            className="bg-ds border border-dotted border-db p-6 hover:-translate-y-px transition-transform"
+          >
+            <h3 className="font-display font-bold text-lg tracking-tight text-dh mb-4">
+              {card.title}
+            </h3>
+            <div className="space-y-2">
+              {card.details.map((detail) => (
+                <div
+                  key={detail.label}
+                  className="flex justify-between items-center text-xs border-b border-dotted border-db pb-2 last:border-0 last:pb-0"
+                >
+                  <span className="font-mono text-dm">{detail.label}</span>
+                  <span className="text-dbd font-medium">{detail.value}</span>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        ))}
       </div>
     </motion.div>
   );

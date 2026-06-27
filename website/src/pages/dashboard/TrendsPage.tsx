@@ -1,8 +1,11 @@
 import { motion } from 'motion/react';
 import { useOutletContext } from 'react-router-dom';
 import { TrendUp } from '@phosphor-icons/react';
-import { cn } from '@/lib/utils';
-import { AQI_CATEGORIES } from '../../lib/aqi';
+import {
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, ReferenceLine,
+} from 'recharts';
+import { MOCK_HISTORY, MOCK_CO_HISTORY, MOCK_TEMP_HISTORY } from '../../lib/mockData';
 
 type DashboardContext = {
   latest: any;
@@ -16,29 +19,52 @@ type DashboardContext = {
   online: boolean;
 };
 
+const AXIS_TICK = {
+  fontSize: 10,
+  fill: '#666',
+  fontWeight: 700,
+  fontFamily: '"Geist Mono", monospace',
+};
+
+const TOOLTIP_STYLE = {
+  background: '#111114',
+  border: '1px dotted #2a2a30',
+  borderRadius: 0,
+  fontSize: 11,
+  fontFamily: '"Geist Mono", monospace',
+};
+
 export default function TrendsPage() {
   const { history } = useOutletContext<DashboardContext>();
 
-  const aqiValues = history.map((h: any) => h.aqi).filter((v: any) => v != null) as number[];
+  // Merge context history with mock for richer data
+  const allHistory = [...MOCK_HISTORY];
+  if (history.length > 0) {
+    // Append real data at the end
+    history.forEach((h: any) => {
+      if (h.aqi != null) {
+        allHistory.push({ timestamp: h.timestamp, aqi: h.aqi, time: h.time });
+      }
+    });
+  }
+
+  const aqiValues = allHistory.map(h => h.aqi).filter(v => v != null);
   const minAqi = aqiValues.length > 0 ? Math.min(...aqiValues) : 0;
   const maxAqi = aqiValues.length > 0 ? Math.max(...aqiValues) : 0;
   const avgAqi = aqiValues.length > 0
     ? Math.round((aqiValues.reduce((a, b) => a + b, 0) / aqiValues.length) * 10) / 10
     : 0;
 
-  // Distribution
-  const distribution = AQI_CATEGORIES.map((cat) => {
-    const count = aqiValues.filter((v) => v >= cat.min && v <= cat.max).length;
-    return { ...cat, count };
-  });
-  const totalReadings = aqiValues.length || 1;
-  const maxCount = Math.max(...distribution.map((d) => d.count), 1);
-
   const summaryCards = [
     { label: 'Min AQI', value: minAqi },
     { label: 'Max AQI', value: maxAqi },
-    { label: 'Average AQI', value: avgAqi },
+    { label: 'Avg AQI', value: avgAqi },
   ];
+
+  // Chart data
+  const aqiData = allHistory.slice(-48);
+  const coData = MOCK_CO_HISTORY.slice(-48);
+  const tempData = MOCK_TEMP_HISTORY.slice(-48);
 
   return (
     <motion.div
@@ -62,18 +88,7 @@ export default function TrendsPage() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 + idx * 0.08, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            className={cn(
-              'bg-ds border border-dotted border-db p-6',
-              'hover:-translate-y-px transition-transform'
-            )}
-            style={{ borderRadius: 0 }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.boxShadow =
-                '0 4px 20px rgba(255,64,64,0.15)';
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).style.boxShadow = 'none';
-            }}
+            className="bg-ds border border-dotted border-db p-6 hover:-translate-y-px transition-transform"
           >
             <p className="text-[10px] font-mono font-semibold uppercase tracking-widest text-dm mb-3">
               {card.label}
@@ -88,61 +103,119 @@ export default function TrendsPage() {
         ))}
       </div>
 
-      {/* Distribution Chart */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.34, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        className={cn(
-          'bg-ds border border-dotted border-db p-6',
-          'hover:-translate-y-px transition-transform'
-        )}
-        style={{ borderRadius: 0 }}
-        onMouseEnter={(e) => {
-          (e.currentTarget as HTMLElement).style.boxShadow =
-            '0 4px 20px rgba(255,64,64,0.15)';
-        }}
-        onMouseLeave={(e) => {
-          (e.currentTarget as HTMLElement).style.boxShadow = 'none';
-        }}
-      >
-        <p className="text-[11px] font-mono font-semibold uppercase tracking-widest text-primary mb-6">
-          Category Distribution
-        </p>
-        <div className="space-y-4">
-          {distribution.map((cat, idx) => {
-            const pct = ((cat.count / totalReadings) * 100).toFixed(1);
-            const barWidth = `${(cat.count / maxCount) * 100}%`;
-            return (
-              <motion.div
-                key={cat.label}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.4 + idx * 0.06, duration: 0.3 }}
-                className="flex items-center gap-4"
-              >
-                <span className="w-28 text-[11px] font-mono text-dbd shrink-0">
-                  {cat.label}
-                </span>
-                <div className="flex-1 h-6 bg-de relative" style={{ borderRadius: 0 }}>
-                  <div
-                    className="h-full transition-all duration-500"
-                    style={{
-                      width: barWidth,
-                      backgroundColor: cat.color,
-                      opacity: 0.8,
-                      borderRadius: 0,
-                    }}
-                  />
-                </div>
-                <span className="w-16 text-right text-[11px] font-mono text-dsc shrink-0">
-                  {cat.count} ({pct}%)
-                </span>
-              </motion.div>
-            );
-          })}
-        </div>
-      </motion.div>
+      {/* Charts grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        {/* AQI Trend */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.34, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          className="bg-ds border border-dotted border-db p-6"
+        >
+          <p className="text-[11px] font-mono font-semibold uppercase tracking-widest text-primary mb-4">
+            AQI Trend
+          </p>
+          <ResponsiveContainer width="100%" height={220}>
+            <AreaChart data={aqiData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <defs>
+                <linearGradient id="aqi-trend-grad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#ff4040" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#ff4040" stopOpacity={0.02} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(42,42,48,0.8)" vertical={false} />
+              <XAxis dataKey="time" tick={AXIS_TICK} tickLine={false} axisLine={false} interval="preserveStartEnd" />
+              <YAxis domain={[0, 400]} tick={AXIS_TICK} tickLine={false} axisLine={false} />
+              <ReferenceLine y={50} stroke="#22c55e" strokeDasharray="4 4" strokeOpacity={0.4} />
+              <ReferenceLine y={100} stroke="#a3e635" strokeDasharray="4 4" strokeOpacity={0.4} />
+              <ReferenceLine y={200} stroke="#f59e0b" strokeDasharray="4 4" strokeOpacity={0.4} />
+              <Tooltip contentStyle={TOOLTIP_STYLE} />
+              <Area
+                type="monotone"
+                dataKey="aqi"
+                stroke="#ff4040"
+                strokeWidth={2}
+                fill="url(#aqi-trend-grad)"
+                dot={false}
+                animationDuration={1200}
+                animationEasing="ease-out"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </motion.div>
+
+        {/* CO Trend */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.42, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          className="bg-ds border border-dotted border-db p-6"
+        >
+          <p className="text-[11px] font-mono font-semibold uppercase tracking-widest text-primary mb-4">
+            CO Trend
+          </p>
+          <ResponsiveContainer width="100%" height={220}>
+            <AreaChart data={coData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <defs>
+                <linearGradient id="co-trend-grad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.02} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(42,42,48,0.8)" vertical={false} />
+              <XAxis dataKey="time" tick={AXIS_TICK} tickLine={false} axisLine={false} interval="preserveStartEnd" />
+              <YAxis tick={AXIS_TICK} tickLine={false} axisLine={false} />
+              <Tooltip contentStyle={TOOLTIP_STYLE} />
+              <Area
+                type="monotone"
+                dataKey="value"
+                stroke="#f59e0b"
+                strokeWidth={2}
+                fill="url(#co-trend-grad)"
+                dot={false}
+                animationDuration={1200}
+                animationEasing="ease-out"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </motion.div>
+
+        {/* Temperature Trend */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.50, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          className="bg-ds border border-dotted border-db p-6"
+        >
+          <p className="text-[11px] font-mono font-semibold uppercase tracking-widest text-primary mb-4">
+            Temperature Trend
+          </p>
+          <ResponsiveContainer width="100%" height={220}>
+            <AreaChart data={tempData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <defs>
+                <linearGradient id="temp-trend-grad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.02} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(42,42,48,0.8)" vertical={false} />
+              <XAxis dataKey="time" tick={AXIS_TICK} tickLine={false} axisLine={false} interval="preserveStartEnd" />
+              <YAxis tick={AXIS_TICK} tickLine={false} axisLine={false} />
+              <Tooltip contentStyle={TOOLTIP_STYLE} />
+              <Area
+                type="monotone"
+                dataKey="value"
+                stroke="#3b82f6"
+                strokeWidth={2}
+                fill="url(#temp-trend-grad)"
+                dot={false}
+                animationDuration={1200}
+                animationEasing="ease-out"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </motion.div>
+      </div>
     </motion.div>
   );
 }
