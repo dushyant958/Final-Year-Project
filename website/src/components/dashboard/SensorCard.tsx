@@ -7,8 +7,7 @@ import {
   Fire,
   Flask,
   CloudFog,
-  Atom,
-  Cube,
+  TestTube,
 } from '@phosphor-icons/react';
 import type { ComponentType } from 'react';
 
@@ -17,23 +16,22 @@ interface Props {
   unit: string;
   value: number | null;
   color?: string;
-  icon: string;
   decimals?: number;
   index?: number;
 }
 
-const ICON_MAP: Record<string, ComponentType<{ size?: number; weight?: 'thin'; className?: string }>> = {
-  '🌡': Thermometer,
-  '💧': Drop,
-  '🔵': Gauge,
-  '🟤': CloudFog,
-  '🟡': Flask,
-  '🔴': Fire,
-  '🧪': Atom,
+const LABEL_ICON_MAP: Record<string, ComponentType<{ size?: number; weight?: 'thin'; className?: string }>> = {
+  'CO': Fire,
+  'NH₃': Flask,
+  'Benzene': TestTube,
+  'Smoke / PM2.5': CloudFog,
+  'Temperature': Thermometer,
+  'Humidity': Drop,
+  'Pressure': Gauge,
 };
 
-export function SensorCard({ label, unit, value, icon, decimals = 1, index = 0 }: Props) {
-  const IconComp = ICON_MAP[icon] ?? Cube;
+export function SensorCard({ label, unit, value, color, decimals = 1, index = 0 }: Props) {
+  const IconComp = LABEL_ICON_MAP[label] ?? null;
 
   return (
     <motion.div
@@ -46,19 +44,19 @@ export function SensorCard({ label, unit, value, icon, decimals = 1, index = 0 }
         'transition-transform duration-200',
         'hover:-translate-y-px'
       )}
-      style={{
-        // hover glow handled via CSS below
-      }}
     >
-      {/* Top accent bar */}
-      <div className="absolute top-0 left-0 right-0 h-[2px] bg-primary opacity-60" />
+      {/* Top accent bar — uses sensor's own color */}
+      <div
+        className="absolute top-0 left-0 right-0 h-[2px] opacity-60"
+        style={{ backgroundColor: color ?? '#666666' }}
+      />
 
       {/* Header: icon + label */}
       <div className="flex items-center justify-between">
         <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-dm">
           {label}
         </span>
-        <IconComp size={18} weight="thin" className="text-dsc" />
+        {IconComp && <IconComp size={18} weight="thin" className="text-dsc" />}
       </div>
 
       {/* Value */}
@@ -68,13 +66,6 @@ export function SensorCard({ label, unit, value, icon, decimals = 1, index = 0 }
         </div>
         <div className="text-[10px] font-mono text-dm mt-1">{unit}</div>
       </div>
-
-      {/* Hover glow style */}
-      <style>{`
-        .group:hover {
-          box-shadow: 0 0 0 1px rgba(255,64,64,0.2), 0 0 24px rgba(255,64,64,0.08);
-        }
-      `}</style>
     </motion.div>
   );
 }

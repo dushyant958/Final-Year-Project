@@ -15,6 +15,15 @@ const HEALTH_ADVICE: Record<string, string> = {
   Severe: 'Emergency conditions. Avoid all outdoor activity. Wear N95 mask if going out.',
 };
 
+const HEALTH_ACTIONS: Record<string, string[]> = {
+  Good: ['Enjoy outdoor activities', 'Windows can stay open'],
+  Satisfactory: ['Generally safe for outdoors', 'Sensitive individuals should monitor'],
+  Moderate: ['Reduce prolonged outdoor exertion', 'Keep windows closed during peak hours'],
+  Poor: ['Avoid outdoor exercise', 'Use air purifier indoors', 'Wear N95 mask outside'],
+  'Very Poor': ['Stay indoors', 'Run air purifiers on high', 'Seek medical help if symptoms appear'],
+  Severe: ['Do not go outside', 'Seal windows', 'Emergency protocols'],
+};
+
 interface Ctx {
   latest: any;
   history: any[];
@@ -43,7 +52,7 @@ export default function Dashboard() {
           transition={{ delay: 0.1, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
           className="bg-ds border border-dotted border-db p-6 flex flex-col group hover:-translate-y-px transition-transform"
         >
-          <p className="text-[11px] font-mono font-semibold uppercase tracking-widest text-primary mb-4">
+          <p className="text-[11px] font-mono font-semibold uppercase tracking-widest text-dsc mb-4">
             Air Quality Index
           </p>
           {loading ? (
@@ -61,16 +70,18 @@ export default function Dashboard() {
           transition={{ delay: 0.18, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
           className="bg-ds border border-dotted border-db p-6 flex flex-col justify-between group hover:-translate-y-px transition-transform"
         >
-          <p className="text-[11px] font-mono font-semibold uppercase tracking-widest text-primary mb-4">
+          <p className="text-[11px] font-mono font-semibold uppercase tracking-widest text-dsc mb-4">
             Category
           </p>
-          <div>
-            <div className="text-3xl font-display font-bold tracking-tight" style={{ color: cat.color }}>
-              {cat.label}
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
+              <span className="text-2xl font-display font-bold text-dh">{cat.label}</span>
             </div>
-            <div className="text-[11px] font-mono text-dm mt-1">
+            <div className="text-xs font-mono text-dm">
               AQI {cat.min}&ndash;{cat.max}
             </div>
+            <div className="h-1 w-full" style={{ backgroundColor: cat.color }} />
           </div>
         </motion.div>
 
@@ -80,12 +91,25 @@ export default function Dashboard() {
           transition={{ delay: 0.26, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
           className="bg-ds border border-dotted border-db p-6 flex flex-col group hover:-translate-y-px transition-transform"
         >
-          <p className="text-[11px] font-mono font-semibold uppercase tracking-widest text-primary mb-4">
-            Health Advice
+          <p className="text-[11px] font-mono font-semibold uppercase tracking-widest text-dsc mb-4">
+            Health Advisory
           </p>
-          <div className="flex gap-2 items-start">
-            <Info weight="thin" className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-            <p className="text-sm text-dbd leading-relaxed">{HEALTH_ADVICE[cat.label]}</p>
+          <div className="space-y-3 flex-1">
+            <div className="flex gap-2 items-start">
+              <Info weight="thin" className="h-4 w-4 text-dsc mt-0.5 shrink-0" />
+              <p className="text-sm text-dbd leading-relaxed">{HEALTH_ADVICE[cat.label]}</p>
+            </div>
+            <div>
+              <p className="text-[10px] font-mono font-semibold uppercase tracking-widest text-dm mb-2">Recommended Actions</p>
+              <ul className="space-y-1">
+                {(HEALTH_ACTIONS[cat.label] ?? []).map((action) => (
+                  <li key={action} className="text-xs text-dbd flex items-start gap-2">
+                    <span className="text-dm mt-1 shrink-0">&bull;</span>
+                    <span>{action}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </motion.div>
       </div>
@@ -121,7 +145,7 @@ export default function Dashboard() {
           className="bg-ds border border-dotted border-db p-6"
         >
           <div className="flex items-center justify-between mb-4">
-            <p className="text-[11px] font-mono font-semibold uppercase tracking-widest text-primary">AQI Trend</p>
+            <p className="text-[11px] font-mono font-semibold uppercase tracking-widest text-dsc">AQI Trend</p>
             <span className="text-[10px] font-mono text-dm">{history.length} readings</span>
           </div>
           <TrendChart history={history} />
@@ -133,7 +157,7 @@ export default function Dashboard() {
           transition={{ delay: 0.58, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
           className="bg-ds border border-dotted border-db p-6"
         >
-          <p className="text-[11px] font-mono font-semibold uppercase tracking-widest text-primary mb-4">Device Info</p>
+          <p className="text-[11px] font-mono font-semibold uppercase tracking-widest text-dsc mb-4">Device Info</p>
           <div className="space-y-3">
             {[
               { label: 'Device ID', val: 'AQI_NODE_01' },
@@ -169,7 +193,7 @@ export default function Dashboard() {
         className="bg-ds border border-dotted border-db px-6 py-4 flex items-center justify-between text-[11px] font-mono text-dm"
       >
         <div className="flex items-center gap-3">
-          <CloudArrowUp weight="thin" className="h-5 w-5 text-primary" />
+          <CloudArrowUp weight="thin" className="h-5 w-5 text-dsc" />
           <span>Data pushed to S3 every 30s · Dashboard auto-refreshes</span>
         </div>
         <span className="text-dsc">Designed for a cleaner tomorrow</span>

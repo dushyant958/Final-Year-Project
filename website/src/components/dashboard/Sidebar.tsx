@@ -8,6 +8,7 @@ import {
   Bell,
   GearSix,
   Wrench,
+  MapPin,
 } from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
 
@@ -88,27 +89,16 @@ export function Sidebar({ online }: Props) {
         })}
       </nav>
 
-      {/* Status section */}
+      {/* Bottom section */}
       <div className="px-4 py-4 border-t border-dotted border-db">
-        {[
-          { label: 'STM32', ok: online },
-          { label: 'ESP32', ok: online },
-          { label: 'Sensors', ok: online },
-          { label: 'Cloud', ok: online },
-        ].map((s) => (
-          <div key={s.label} className="flex items-center justify-between py-1.5">
-            <span className="text-[11px] font-mono text-dm">{s.label}</span>
-            <span
-              className={cn(
-                'w-2 h-2 rounded-full',
-                s.ok ? 'bg-green-500' : 'bg-red-500'
-              )}
-            />
-          </div>
-        ))}
+        {/* Location */}
+        <div className="flex items-center gap-2 mb-2">
+          <MapPin weight="thin" className="h-3.5 w-3.5 text-dm shrink-0" />
+          <span className="text-[10px] font-mono text-dm">Pimpri, Pune</span>
+        </div>
 
         {/* Version */}
-        <div className="mt-3 text-[9px] font-mono text-dm">
+        <div className="text-[9px] font-mono text-dm">
           v1.0.3 &middot; m2cgen XGBoost
         </div>
       </div>
